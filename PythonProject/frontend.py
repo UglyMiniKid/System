@@ -7,13 +7,7 @@ from backend import *
 #    page.update()
 #ft.app(target=main)
 hello()
-get_name()
-get_surname()
-name2()
-get_number()
-get_password()
-start_balance()
-index+=1
-save_user()
+#index+=1
+#ft.app(target=add_balance())
 
 
