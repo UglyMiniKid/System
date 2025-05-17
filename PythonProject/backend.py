@@ -1,7 +1,9 @@
 from frontend import *
 import pandas as pd
-#import telebot
-import flet as ft
+import telebot
+from telebot import types
+token='7569945224:AAF9JMJcw4E2iFfwSKbyL-TB4KGhzw7Pp44'
+bot=telebot.TeleBot(token)
 df = pd.read_excel('База_данных.xlsx')
 index = 1
 balance=0
@@ -19,20 +21,16 @@ balance_index = df[df["Баланс"].isnull()].index.min()
 # Очищаем ячейку в строке 3, столбце 'Цена'
 low = "абвгдеёжзийклмнопрстуфхцчшщъыьэюя"
 up = 'АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ'
-def hello():
-    print("Здравствуйте! Вы попали в банковскую систему имени Дмитрия Вардугина!")
-    print("Выберите следующее действие: Авторизация; Вход")
-    choice = input().lower()
-    while True:
-        if choice == "авторизация":
-            autorization()
-            break
-        elif choice == "вход":
-            enter()
-            break
-        else:
-            print("Некорректное действие. Пожалуйста, выберите действие из описанных ранее:")
-            choice = input().lower()
+@bot.message_handler(commands=['start'])
+def start_message(message):
+    bot.send_message(message.chat.id, "Здравствуйте! Вы попали в банковскую систему имени Дмитрия Вардугина!")
+    bot.send_message(message.chat.id, "Выберите следующее действие: Авторизация; Вход")
+@bot.message_handler(content_types='text')
+def message_reply(message):
+    if message.text == "Авторизация":
+        autorization()
+    elif message.text == "вход":
+        enter()
 def autorization():
     name = input("Введите ваше имя: ")
     if len(name) > 15 or len(name) < 2:
@@ -95,7 +93,6 @@ def autorization():
     df.loc[number_index, 'Номер'] = number
     df.loc[password_index, 'Пароль'] = password
     df.loc[balance_index, 'Баланс'] = balance
-
     df.to_excel('База_данных.xlsx', index=False)
     return 0
     index += 1
@@ -103,11 +100,11 @@ def on_click():  # Функция, вызываемая при нажатии
     global balance
     balance += 100  # Добавляем текст на экран
     return 0
-def add_balance(page: ft.Page):
-    page.title = "Кликер деняк)"
-    button1 = ft.ElevatedButton("+100", on_click=on_click)
-    page.add(button1)
-    #df.loc[index, 'Баланс'] = balance
+#def add_balance(page: ft.Page):
+#    page.title = "Кликер деняк)"
+#    button1 = ft.ElevatedButton("+100", on_click=on_click)
+#    page.add(button1)
+#    #df.loc[index, 'Баланс'] = balance
 def enter():
     print("Введите ваш пароль:")
     pas = input()
@@ -118,8 +115,14 @@ def enter():
     else:
         print("Ошибка: пароль!")#неверный номер телефона или
         return None
-def menu():
-    print("Вы находитесь в главном меню банка. Выберите следующее действие:")
-    print()
+# menu():
+    #print("Вы находитесь в главном меню банка. Выберите следующее действие:")																														bot.send_message(message.chat.id,'Выберите что вам надо',reply_markup=markup)
 
 
+#@bot.message_handler(commands=['button'])
+#def button_message(message):
+
+
+
+
+bot.infinity_polling()
