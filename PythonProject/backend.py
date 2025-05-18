@@ -2,125 +2,155 @@ from frontend import *
 import pandas as pd
 import telebot
 from telebot import types
-token='7569945224:AAF9JMJcw4E2iFfwSKbyL-TB4KGhzw7Pp44'
-bot=telebot.TeleBot(token)
-df = pd.read_excel('База_данных.xlsx')
-index = 1
-balance=0
+
+token = "7569945224:AAF9JMJcw4E2iFfwSKbyL-TB4KGhzw7Pp44"
+bot = telebot.TeleBot(token)
+remove_markup = types.ReplyKeyboardRemove()
+df = pd.read_excel("База_данных.xlsx")
+final_name = ""
+final_surname = ""
+final_name2 = ""
+number = ""
+password = ""
+balance = 0
 name_index = df[df["Имя"].isnull()].index.min()
 surname_index = df[df["Фамилия"].isnull()].index.min()
 name2_index = df[df["Отчество"].isnull()].index.min()
 number_index = df[df["Номер"].isnull()].index.min()
 password_index = df[df["Пароль"].isnull()].index.min()
 balance_index = df[df["Баланс"].isnull()].index.min()
-#df.loc[row_index, 'column_name'] =
-#def add_name():
-#    df_excel.loc[row_index+1, "Имя"] = get_name()
-#    return row_index
-#add_name()
-# Очищаем ячейку в строке 3, столбце 'Цена'
 low = "абвгдеёжзийклмнопрстуфхцчшщъыьэюя"
-up = 'АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ'
-@bot.message_handler(commands=['start'])
-def start_message(message):
-    bot.send_message(message.chat.id, "Здравствуйте! Вы попали в банковскую систему имени Дмитрия Вардугина!")
-    bot.send_message(message.chat.id, "Выберите следующее действие: Авторизация; Вход")
-@bot.message_handler(content_types='text')
-def message_reply(message):
+up = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ"
+
+
+@bot.message_handler(commands=["start"])
+def start(message):
+    bot.send_message(message.chat.id,
+                     f"Здравствуйте, {message.chat.username}! Вы попали в банковскую систему имени Дмитрия Вардугина!")
+
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    markup.add(types.KeyboardButton("Авторизация"), types.KeyboardButton("Вход"))
+
+    bot.send_message(message.chat.id, "Выберите действие:", reply_markup=markup)
+
+
+@bot.message_handler(content_types=["text"])
+def main_handler(message):
     if message.text == "Авторизация":
-        autorization()
-    elif message.text == "вход":
-        enter()
-def autorization():
-    name = input("Введите ваше имя: ")
-    if len(name) > 15 or len(name) < 2:
-        while len(name) > 15 or len(name) < 2:
-            print("Вас нету в базе данных Госуслуг. Введите ваше настоящее имя")
-            name = input("Введите ваше имя: ")
-    first_s = name[0]
-    if first_s in low:
-        pos = low.index(first_s)
-        first_s = up[pos]
-    offer_s = name[1:]
-    low_s = ''
-    for i in offer_s:
-        if i in up:
-            pos = up.index(i)
-            i = low[pos]
-        low_s += i
-    name = first_s + low_s
-    surname = input("Введите вашу фамилию: ")
-    first_s = surname[0]
-    if first_s in low:
-        pos = low.index(first_s)
-        first_s = up[pos]
-    offer_s = surname[1:]
-    low_s = ''
-    for i in offer_s:
-        if i in up:
-            pos = up.index(i)
-            i = low[pos]
-        low_s += i
-    surname = first_s + low_s
-    name2 = input("Введите ваше отчество: ")
-    if len(name2) > 19 or len(name2) < 6:
-        while len(name2) > 19 or len(name2) < 6:
-            print("Вас нету в базе данных Госуслуг. Введите ваше настоящее имя")
-            name = input("Введите ваше имя: ")
-    first_s = name2[0]
-    if first_s in low:
-        pos = low.index(first_s)
-        first_s = up[pos]
-    offer_s = name2[1:]
-    low_s = ''
-    for i in offer_s:
-        if i in up:
-            pos = up.index(i)
-            i = low[pos]
-        low_s += i
-    name2 = first_s + low_s
-    number = input("Введите ваш номер: ")
-    if len(number) >12 or len(number) < 10:
-        print("Вы ввели некорректный номер. пожалуйста, запишите его в такой формате: 79991234567")
-        input()
-        while len(number) >12 or len(number) <9:
-            print("Вы ввели некорректный номер. пожалуйста, запишите его в такой формате: 79991234567")
-            input()
-    password = input("Введите новый пароль: ")
-    df.loc[name_index, 'Имя'] = name
-    df.loc[surname_index, 'Фамилия'] = surname
-    df.loc[name2_index, 'Отчество'] = name2
-    df.loc[number_index, 'Номер'] = number
-    df.loc[password_index, 'Пароль'] = password
-    df.loc[balance_index, 'Баланс'] = balance
-    df.to_excel('База_данных.xlsx', index=False)
-    return 0
-    index += 1
-def on_click():  # Функция, вызываемая при нажатии
-    global balance
-    balance += 100  # Добавляем текст на экран
-    return 0
-#def add_balance(page: ft.Page):
-#    page.title = "Кликер деняк)"
-#    button1 = ft.ElevatedButton("+100", on_click=on_click)
-#    page.add(button1)
-#    #df.loc[index, 'Баланс'] = balance
-def enter():
-    print("Введите ваш пароль:")
-    pas = input()
-    user = df[(df["Пароль"] == pas)]
+        bot.send_message(message.chat.id, "Введите ваше имя:", reply_markup=remove_markup)
+        bot.register_next_step_handler(message, process_name)
+
+    elif message.text == "Вход":
+        bot.send_message(message.chat.id, "Введите ваш пароль:", reply_markup=remove_markup)
+        bot.register_next_step_handler(message, enter)
+
+def enter(message):
+    password = message.text
+    user = df[df["Пароль"] == password]
+
     if not user.empty:
-        print(f"Пользователь найден! Добро пожаловать, {user.iloc[0]['Имя']}!")
-        return user.index[0]
+        print(f"Вошел пользователь {user.iloc[0]['Имя']}")
+        bot.send_message(message.chat.id, f"Пользователь найден! Добро пожаловать, {user.iloc[0]['Имя']}!")
+
     else:
-        print("Ошибка: пароль!")#неверный номер телефона или
-        return None
-# menu():
-    #print("Вы находитесь в главном меню банка. Выберите следующее действие:")																														bot.send_message(message.chat.id,'Выберите что вам надо',reply_markup=markup)
+        bot.send_message(message.chat.id, "Ошибка: неверный пароль!")
+        bot.send_message(message.chat.id, "Попробуйте еще раз или выберите 'Авторизация'")
 
 
-#@bot.message_handler(commands=['button'])
-#def button_message(message):
+def process_name(message):
+    name = message.text
+
+    if len(name) < 2 or len(name) > 15:
+        bot.send_message(message.chat.id, "Некорректное имя! Введите снова:")
+        bot.register_next_step_handler(message, process_name)
+        return
+
+    first_letter = name[0].upper()
+    rest = name[1:].lower()
+    final_name = first_letter + rest
+
+    print(f"Имя нового пользователя: {final_name}")
+    bot.send_message(message.chat.id, f"Принятое имя: {final_name}")
+    df.loc[name_index, "Имя"] = final_name
+
+    bot.send_message(message.chat.id, "Теперь введите вашу фамилию:")
+    bot.register_next_step_handler(message, process_surname)
+
+
+def process_surname(message):
+    surname = message.text
+
+    first_letter = surname[0].upper()
+    rest = surname[1:].lower()
+    final_surname = first_letter + rest
+
+    print(f"Фамилия нового пользователя: {final_surname}")
+    bot.send_message(message.chat.id, f"Принятая фамилия: {final_surname}")
+    df.loc[surname_index, "Фамилия"] = surname
+
+    bot.send_message(message.chat.id, "Теперь введите ваше отчество:")
+    bot.register_next_step_handler(message, process_name2)
+
+
+def process_name2(message):
+    name2 = message.text
+
+    first_letter = name2[0].upper()
+    rest = name2[1:].lower()
+    final_name2 = first_letter + rest
+
+    print(f"Отчество нового пользователя: {final_name2}")
+    bot.send_message(message.chat.id, f"Принятое отчество: {final_name2}")
+    df.loc[name2_index, "Отчество"] = name2
+
+    bot.send_message(message.chat.id, "Теперь введите ваш номер:")
+    bot.register_next_step_handler(message, process_number)
+
+
+def process_number(message):
+    number = message.text
+
+    print(f"Номер нового пользователя: {number}")
+    bot.send_message(message.chat.id, f"Ваш номер: {number}")
+    df.loc[surname_index, "Номер"] = number
+
+    bot.send_message(message.chat.id, "Теперь введите ваш новый пароль:")
+    bot.register_next_step_handler(message, process_password)
+
+
+def process_password(message):
+    password = message.text
+    print(f"Пароль нового пользователя: {password}")
+    df.loc[password_index, "Пароль"] = password
+    df.loc[balance_index, "Баланс"] = balance
+
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    markup.add(types.KeyboardButton("Сохранить"))
+
+    bot.send_message(message.chat.id, "Нажмите кнопку для сохранения:", reply_markup=markup)
+    bot.register_next_step_handler(message, save_user)
+
+
+def save_user(message):
+    df.to_excel("База_данных.xlsx", index=False)
+    print(f"Новый пользователь сохранен")
+    bot.send_message(message.chat.id, "Данные сохранены!", reply_markup=remove_markup)
+
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    markup.add("Главное меню", "Выход")
+
+    bot.send_message(message.chat.id, "Выберите следующее действие: ", reply_markup=markup)
+    bot.register_next_step_handler(message, main_menu)
+
+
+def main_menu(message):
+    if message.text == "Выход":
+        print("Da")
+
+@bot.message_handler(commands=["ZXCtrueghoul"])
+def show_users(message):
+    for i in df[df["Имя"]].index.max():
+        bot.send_message(message.chat.id, f"Пользователь: {i}")
 
 
 
