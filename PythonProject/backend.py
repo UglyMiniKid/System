@@ -2,7 +2,7 @@ import pandas as pd
 import telebot
 from telebot import types
 
-token = input("Введите токен: ")
+token = "7569945224:AAF9JMJcw4E2iFfwSKbyL-TB4KGhzw7Pp44"
 bot = telebot.TeleBot(token)
 remove_markup = types.ReplyKeyboardRemove()
 df = pd.read_excel("База_данных.xlsx")
@@ -14,7 +14,7 @@ up = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ"
 transfer_data = []
 @bot.message_handler(commands=["start"])
 def start(message):
-    bot.send_message(message.chat.id, f"Здравствуйте, {message.chat.first_name}! Вы попали в банковскую систему имени Дмитрия Вардугина!")
+    bot.send_message(message.chat.id, f"Здравствуйте, {message.chat.first_name}! Вы попали в банковскую систему имени Ученика Уникума!")
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     markup.add(types.KeyboardButton("Авторизация"), types.KeyboardButton("Вход"))
     bot.send_message(message.chat.id, "Выберите действие:", reply_markup=markup)
@@ -104,8 +104,9 @@ def process_name2(message):
 def process_number(message):
     number_index = df[df["Номер"].isnull()].index.min()
     number = message.text
-    if len(number) < 11 or len(number) > 12:
+    if len(number) != 11:
         bot.send_message(message.chat.id, "Некорректный номер! Введите снова в формате 79991234567:")
+        bot.register_next_step_handler(message, process_number)
         return
     print(f"Номер нового пользователя {message.chat.id}: {number}")
     bot.send_message(message.chat.id, f"Ваш номер: {number}")
@@ -211,8 +212,8 @@ def start_perevod(message):
         return
     global transfer_data
     transfer_data = {
-        'recipient_id': user2_data.iloc[0]["ID"],
-        'sender_id': message.chat.id
+        'Получатель': user2_data.iloc[0]["ID"],
+        'Отправитель': message.chat.id
     }
     bot.send_message(message.chat.id, f"Введите сумму для перевода (ваш баланс {user_data.iloc[0]['Баланс']} руб.):")
     bot.register_next_step_handler(message, end_perevod)
@@ -221,8 +222,8 @@ def end_perevod(message):
         amount = float(message.text)
         if amount <= 0:
             raise ValueError("Сумма должна быть положительной")
-        recipient_id = transfer_data['recipient_id']
-        sender_id = transfer_data['sender_id']
+        recipient_id = transfer_data['Получатель']
+        sender_id = transfer_data['Отправитель']
         user_data = df[df["ID"] == sender_id]
         user2_data = df[df["ID"] == recipient_id]
         user_balance = user_data.iloc[0]["Баланс"]
