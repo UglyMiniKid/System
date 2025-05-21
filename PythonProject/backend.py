@@ -23,7 +23,7 @@ def start(message):
 @bot.message_handler(content_types=["text"])
 def main_handler(message):
     if message.text == "Авторизация":
-        for i in range(df[df["Имя"].nonnull()].index.min(), df[df["Имя"].nonnull()].index.max()):
+        for i in range(df[df["Имя"].notnull()].index.min(), df[df["Имя"].notnull()].index.max()):
             if i == message.chat.id:
                 bot.send_message(message.chat.id, "Вы уже регистрировались в нашем банке, "
                                                   "пожалуйста, войдите в Ваш аккаунт")
