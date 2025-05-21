@@ -14,7 +14,8 @@ up = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ"
 transfer_data = []
 @bot.message_handler(commands=["start"])
 def start(message):
-    bot.send_message(message.chat.id, f"Здравствуйте, {message.chat.first_name}! Вы попали в банковскую систему имени Ученика Уникума!")
+    bot.send_message(message.chat.id, f"Здравствуйте, {message.chat.first_name}! Вы попали в банковскую систему "
+                                      "имени Ученика Уникума!")
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     markup.add(types.KeyboardButton("Авторизация"), types.KeyboardButton("Вход"))
     bot.send_message(message.chat.id, "Выберите действие:", reply_markup=markup)
@@ -22,14 +23,37 @@ def start(message):
 @bot.message_handler(content_types=["text"])
 def main_handler(message):
     if message.text == "Авторизация":
+        for i in range(df[df["Имя"].nonnull()].index.min(), df[df["Имя"].nonnull()].index.max()):
+            if i == message.chat.id:
+                bot.send_message(message.chat.id, "Вы уже регистрировались в нашем банке, "
+                                                  "пожалуйста, войдите в Ваш аккаунт")
         bot.send_message(message.chat.id, "Введите ваше имя:", reply_markup=remove_markup)
         bot.register_next_step_handler(message, process_name)
     elif message.text == "Вход":
         bot.send_message(message.chat.id, "Введите ваш номер:", reply_markup=remove_markup)
         bot.register_next_step_handler(message, check_number)
+
+def num_main_port(message):
+    if message.text == "Авторизация":
+        bot.send_message(message.chat.id, "Введите ваше имя:", reply_markup=remove_markup)
+        bot.register_next_step_handler(message, process_name)
+    else:
+        try:
+            number = str(message.text).strip()
+            if not number.isdigit() or len(number) != 11:
+                raise ValueError
+            bot.send_message(message.chat.id, "Введите ваш номер:")
+            bot.register_next_step_handler(message, check_number)
+        except:
+            markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+            markup.add(types.KeyboardButton("Авторизация"), types.KeyboardButton("Вход"))
+            bot.send_message(message.chat.id, "Некорректный номер! Используйте формат 79991234567", reply_markup=markup)
+            bot.send_message(message.chat.id, "Попробуйте еще раз или выберите 'Авторизация'")
+            bot.register_next_step_handler(message, num_main_port)
+
 def check_number(message):
     try:
-        number = str(message.text).strip()  # Приводим к строке и убираем пробелы
+        number = str(message.text).strip()
         if not number.isdigit() or len(number) != 11:
             raise ValueError
         bot.send_message(message.chat.id, "Введите ваш пароль:")
@@ -45,7 +69,7 @@ def check_password(message, number_data):
         number = str(number_data['number']).strip()
         df['Номер'] = df['Номер'].astype(str).str.strip()
         df['Пароль'] = df['Пароль'].astype(str).str.strip()
-        user = df[(df["Номер"] == number) & (df["Пароль"] == password)]
+        user = df[(df["Номер"] == number) & (df["Пароль"] == password) & (df["ID"] == message.chat.id)]
         if not user.empty:
             print(f"Вошел пользователь {user.iloc[0]['Имя']}")
             bot.send_message(message.chat.id, f"Пользователь найден! Добро пожаловать, {user.iloc[0]['Имя']}!")
@@ -59,12 +83,19 @@ def check_password(message, number_data):
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
         markup.add(types.KeyboardButton("Авторизация"), types.KeyboardButton("Вход"))
         bot.send_message(message.chat.id, "Ошибка: неверный номер или пароль!", reply_markup=markup)
-        bot.send_message(message.chat.id, "Попробуйте еще раз или выберите 'Авторизация'")
+        bot.send_message(message.chat.id, "Попробуйте ввести номер снова или нажмите 'Авторизация'")
+        bot.register_next_step_handler(message, num_main_port)
+        return
+
 def process_name(message):
     name_index = df[df["Имя"].isnull()].index.min()
     name = message.text
     if len(name) < 2 or len(name) > 15:
         bot.send_message(message.chat.id, "Некорректное имя! Введите снова:")
+        bot.register_next_step_handler(message, process_name)
+        return
+    if not name.isalpha():
+        bot.send_message(message.chat.id,"Имя должно содержать только буквы (без цифр, пробелов и других символов)! Введите снова:")
         bot.register_next_step_handler(message, process_name)
         return
     first_letter = name[0].upper()
@@ -78,6 +109,10 @@ def process_name(message):
 def process_surname(message):
     surname_index = df[df["Фамилия"].isnull()].index.min()
     surname = message.text
+    if not surname.isalpha():
+        bot.send_message(message.chat.id,"Фамилия должна содержать только буквы (без цифр, пробелов и других символов)! Введите снова:")
+        bot.register_next_step_handler(message, process_surname)
+        return
     first_letter = surname[0].upper()
     rest = surname[1:].lower()
     final_surname = first_letter + rest
@@ -90,7 +125,11 @@ def process_name2(message):
     name2_index = df[df["Отчество"].isnull()].index.min()
     name2 = message.text
     if len(name2) < 6 or len(name2) > 19:
-        bot.send_message(message.chat.id, "Некорректное Отчество! Введите снова:")
+        bot.send_message(message.chat.id, "Некорректное отчество! Введите снова:")
+        bot.register_next_step_handler(message, process_name2)
+        return
+    if not name2.isalpha():
+        bot.send_message(message.chat.id,"Отчество должно содержать только буквы (без цифр, пробелов и других символов)! Введите снова:")
         bot.register_next_step_handler(message, process_name2)
         return
     first_letter = name2[0].upper()
