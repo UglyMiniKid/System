@@ -2,7 +2,7 @@ import pandas as pd
 import telebot
 from telebot import types
 
-token = "7569945224:AAF9JMJcw4E2iFfwSKbyL-TB4KGhzw7Pp44"
+token = input("Введите ваш токен: ")
 bot = telebot.TeleBot(token)
 remove_markup = types.ReplyKeyboardRemove()
 df = pd.read_excel("База_данных.xlsx")
